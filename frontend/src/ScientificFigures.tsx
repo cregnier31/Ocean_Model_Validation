@@ -12,6 +12,7 @@ export default function ScientificFigures({group}:{group:Group}) {
   const [active,setActive]=useState<string | null>(null);
   const figures = (manifest as Record<Group, Figure[]>)[group];
   const selected = figures.find(f=>f.file===active) ?? figures[0];
+  if (!selected) return <section className="panel scientific-gallery"><div className="panel-heading"><div><h2>{groups[group].title}</h2><p>{groups[group].description}</p></div></div><p style={{padding:'0 20px 20px',color:'#a9c2d2'}}>Figures are ready to import. Extract the supplied image bundle into the repository or run <code>python scripts/import_figures.py /path/to/archives</code>.</p></section>;
   return <section className="panel scientific-gallery">
     <div className="panel-heading"><div><h2>{groups[group].title}</h2><p>{groups[group].description} · {figures.length} figures</p></div></div>
     <div className="figure-layout">
