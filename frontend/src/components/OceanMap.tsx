@@ -36,6 +36,7 @@ export default function OceanMap({mode}: Props) {
     map.addControl(new maplibregl.AttributionControl({compact: true}), 'bottom-right');
     map.on('load', () => {
       map.addSource('drifter-lines', {type:'geojson', data: {type: 'FeatureCollection', features: lineFeatures}});
+      map.setLayoutProperty('drifter-lines','visibility',mode === 'overview' || mode === 'lagrangian' ? 'visible' : 'none');
       map.addLayer({id:'drifter-lines', type:'line', source:'drifter-lines', layout:{'line-join':'round','line-cap':'round'},paint:{'line-width':3.5,'line-color':['get','color'],'line-opacity':0.85}});
       map.addSource('eddy-polygons', {type:'geojson', data: {type:'FeatureCollection', features: eddies.map(e=>({
         type:'Feature' as const, properties:{id:e.id,kind:e.kind},
@@ -43,6 +44,7 @@ export default function OceanMap({mode}: Props) {
       }))}});
       map.addLayer({id:'eddy-fill',type:'fill',source:'eddy-polygons',paint:{'fill-color':['match',['get','kind'],'Cyclonic','#a78bfa','#2dd4bf'],'fill-opacity':0.30}});
       map.addLayer({id:'eddy-outline',type:'line',source:'eddy-polygons',paint:{'line-color':['match',['get','kind'],'Cyclonic','#a78bfa','#2dd4bf'],'line-width':2}});
+      for (const layer of ['eddy-fill','eddy-outline']) map.setLayoutProperty(layer,'visibility',mode === 'overview' || mode === 'eddy' || mode === 'diagnostics' ? 'visible' : 'none');
       map.on('click','eddy-fill',e=>{const feature=e.features?.[0];if (feature) new maplibregl.Popup().setLngLat(e.lngLat).setHTML('<strong>'+feature.properties?.id+'</strong><div>'+feature.properties?.kind+'</div>').addTo(map);});
       mapRef.current=map;
     });
