@@ -1,57 +1,12 @@
 # Ocean Model Validation (OMV)
 
-Interactive scientific dashboard for ocean forecast model validation, intercomparison, Lagrangian processes, eddy tracking, and ocean dynamics diagnostics.
+React + TypeScript + Vite application for browsing supplied ocean forecast validation figures.
 
-## Stack
-- React 19 + TypeScript + Vite
-- Plotly for scientific figures
-- MapLibre GL for interactive maps
-- Python FastAPI for model metadata and metrics
+## Current behavior
 
-## Quick start
-Install Node.js 20.19+ and Python 3.10+.
+The frontend displays **only indexed PNG figures**. It does not calculate RMSE, bias, skill scores, model rankings, drifter trajectories, or eddy statistics. The overview reports counts of available image files, not verification results. Empty sections explicitly say when results have not been provided.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend: http://localhost:5173
-
-In another terminal:
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-API: http://localhost:8000/docs
-
-The frontend uses built-in **synthetic demonstration data** by default. Set `VITE_API_URL=http://localhost:8000` in `frontend/.env` to connect the API; the API currently returns synthetic data as well.
-
-## Modules
-- **Overview** — summary of validation scores
-- **Class 1–4 Validation** — selectable metric classes and time series
-- **Model Intercomparison** — side-by-side scores
-- **Lagrangian Analysis** — illustrative drifter trajectories
-- **Eddy Tracking** — illustrative eddy centers and statistics
-- **Ocean Dynamics Diagnostics** — EKE, vorticity, divergence and Okubo–Weiss indicators
-
-## Connecting production scientific data
-Replace synthetic endpoints with model- and observation-derived computations. Recommended processing: xarray, Dask, Zarr/NetCDF, Parquet; PostGIS for spatial feature indexing and vector/tile services for large layers. Preserve provenance (model, reference, variable, run date, lead time, spatial/temporal aggregation) with every metric.
-
-The class naming is a placeholder taxonomy: adapt Class 1–4 to your organization's formal validation definitions before operational use.
-
-## License
-MIT
-
-## Display local validation figures
-
-Copy your PNG directories under `imgs/` at the repository root:
+Supported folders:
 
 ```text
 imgs/
@@ -62,17 +17,37 @@ imgs/
     SST_drifters/*.png
     UV_drifters/*.png
     aice/*.png
+  lagrangian/*.png
+  eddy_tracking/*.png
 ```
 
-Run from the repository root:
+## Start
+
+Install Node.js and npm in your environment, then run from the repository root:
 
 ```bash
+git pull origin main
 python scripts/sync_figures.py imgs
 cd frontend
 npm install --include=dev
 npm run dev
 ```
 
-The synchronization script copies the images into `frontend/public/imgs/` and creates `frontend/public/figures-manifest.json`. In **Class 1–4 Validation**, select Class 1 or Class 4, then choose the Class 4 figure category. Use region and variable filters to browse the figures. Re-run the script after adding or removing PNGs.
+Open http://localhost:5173. To sync images from a different location, pass the absolute path to the `imgs` directory. Re-run the sync command after adding PNGs, then refresh the browser.
 
-If your images are elsewhere, run `python scripts/sync_figures.py /absolute/path/to/imgs` instead. The images must be synced before building the frontend or running the app.
+The sync script copies the PNGs to `frontend/public/imgs/` and writes `frontend/public/figures-manifest.json`. If you want the images tracked by GitHub, commit those generated assets separately.
+
+## Modules
+
+- **Overview:** counts of indexed PNG files.
+- **Class 1–4 Validation:** Class 1 and Class 4 galleries, with Class 4 profiles, radar, regional scores, UV drifters and sea ice. Classes 2 and 3 have no supplied figures.
+- **Model Intercomparison:** supplied regional comparison figures.
+- **Lagrangian Analysis:** supplied trajectory and separation-statistics figures.
+- **Eddy Tracking:** figure gallery; currently empty if no PNGs are present.
+- **Ocean Dynamics Diagnostics:** no supplied results yet.
+
+The `backend/` folder contains an experimental FastAPI scaffold with synthetic endpoints; **it is not used by this frontend**. Do not treat its responses as scientific validation results.
+
+## License
+
+MIT
