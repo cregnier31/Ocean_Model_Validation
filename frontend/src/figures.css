@@ -23,3 +23,15 @@
 /* Ocean Dynamics: centered slider below the plot, 75% of preview width. */
 .forecast-timeline-dynamics{width:75%;box-sizing:border-box;margin:14px auto 10px}
 @media(max-width:600px){.forecast-timeline-dynamics{width:90%}}
+
+/* Compact Ocean Dynamics controls and prioritize plot display area. */
+.dynamics-gallery .figure-layout{grid-template-columns:190px minmax(0,1fr);gap:10px;padding:0 10px 12px}
+.dynamics-gallery .figure-preview{padding:6px}
+.dynamics-gallery .figure-preview img{max-height:min(76vh,850px)}
+.dynamics-gallery .forecast-timeline-dynamics{padding:5px 12px 4px;margin:7px auto 5px;border-radius:5px}
+.dynamics-gallery .forecast-timeline-heading{font-size:11px;margin-bottom:3px}
+.dynamics-gallery .forecast-timeline-heading strong{font-size:12px}
+.dynamics-gallery .forecast-timeline-ticks{margin-top:1px;gap:3px}
+.dynamics-gallery .forecast-timeline-ticks button{font-size:10px;padding:1px 3px}
+.dynamics-gallery .figure-meta{margin-top:5px}
+@media(max-width:750px){.dynamics-gallery .figure-layout{grid-template-columns:1fr}.dynamics-gallery .figure-preview img{max-height:65vh}}
