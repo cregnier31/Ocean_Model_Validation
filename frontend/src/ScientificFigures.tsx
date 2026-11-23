@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice';
+export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking';
 type Figure = { url: string; file: string; label: string; region: string; variable: string };
 type Catalog = Partial<Record<FigureGroup, Figure[]>>;
 const groups: Record<FigureGroup, {title:string;description:string}> = {
@@ -9,7 +9,9 @@ const groups: Record<FigureGroup, {title:string;description:string}> = {
   radar:{title:'Class 4 · Radar diagrams',description:'Regional model skill and PR/PF diagnostics'},
   sst_drifters:{title:'Class 4 · SST and drifter scores',description:'Intercomparison, profile and drifter skill scores'},
   uv_drifters:{title:'Class 4 · UV drifter scores',description:'Regional zonal and meridional current RMSD and bias'},
-  aice:{title:'Class 4 · Sea-ice concentration',description:'Sea-ice concentration validation scores'}
+  aice:{title:'Class 4 · Sea-ice concentration',description:'Sea-ice concentration validation scores'},
+  lagrangian:{title:'Lagrangian diagnostics',description:'Trajectory separation, Liu scores, observation counts and statistics'},
+  eddy_tracking:{title:'Eddy tracking',description:'Eddy tracking results when figures are available'}
 };
 export default function ScientificFigures({group}:{group:FigureGroup}) {
   const [catalog,setCatalog] = useState<Catalog>({});
