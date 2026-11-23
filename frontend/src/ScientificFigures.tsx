@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking' | 'ocean_dynamics' | 'overview' | 'surface_maps' | 'surface_timeseries';
-type Figure = { type?: "image" | "video"; url: string; file: string; label: string; region: string; variable: string };
+type Figure = { type?: "image" | "video"; url: string; file: string; label: string; region: string; variable: string; lead?: string };
 type Catalog = Partial<Record<FigureGroup, Figure[]>>;
 const groups: Record<FigureGroup, {title:string;description:string}> = {
   class1:{title:'Class 1 · SST ensemble validation',description:'Ensemble SST comparisons against OSTIA'},
@@ -23,6 +23,7 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   const [region,setRegion] = useState('All regions');
   const [variable,setVariable] = useState('All variables');
   const [active,setActive] = useState<string | null>(null);
+  const [lead,setLead] = useState('All leads');
   const [mediaType,setMediaType] = useState<'all'|'image'|'video'>('all');
   useEffect(()=>{
     let mounted=true;
@@ -34,20 +35,22 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   },[]);
   const figures=catalog[group]??[];
   const regions=useMemo(()=>['All regions',...Array.from(new Set(figures.map(f=>f.region))).sort()], [figures]);
+  const leads=useMemo(()=>['All leads',...Array.from(new Set(figures.map(f=>f.lead??'All leads').filter(l=>l!=='All leads'))).sort()], [figures]);
   const variables=useMemo(()=>['All variables',...Array.from(new Set(figures.map(f=>f.variable))).sort()], [figures]);
-  const filtered=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable)&&(mediaType==='all'||(f.type??'image')===mediaType));
-  const selected=filtered.find(f=>f.file===active)??filtered[0];
+  const filtered=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable)&&(lead==='All leads'||(f.lead??'All leads')===lead)&&(mediaType==='all'||(f.type??'image')===mediaType));
+  const selected=filtered.find(f=>f.url===active)??filtered[0];
   return <section className="panel scientific-gallery">
     <div className="panel-heading"><div><h2>{groups[group].title}</h2><p>{groups[group].description} · {figures.length} media files</p></div></div>
     {error||figures.length===0?<p className="figure-empty">No plots or videos indexed for this category. From the repository root, run <code>python scripts/sync_figures.py imgs</code> (or provide the full path to your <code>imgs</code> directory), then refresh the page.</p>:<>
       <div className="figure-filters">
         <label>Region <select value={regions.includes(region)?region:'All regions'} onChange={e=>{setRegion(e.target.value);setActive(null)}}>{regions.map(r=><option key={r}>{r}</option>)}</select></label>
         <label>Variable <select value={variables.includes(variable)?variable:'All variables'} onChange={e=>{setVariable(e.target.value);setActive(null)}}>{variables.map(v=><option key={v}>{v}</option>)}</select></label>
+        {leads.length>1&&<label>Forecast lead <select value={leads.includes(lead)?lead:'All leads'} onChange={e=>{setLead(e.target.value);setActive(null)}}>{leads.map(l=><option key={l}>{l}</option>)}</select></label>}
         <label>Media <select value={mediaType} onChange={e=>{setMediaType(e.target.value as typeof mediaType);setActive(null)}}><option value="all">All media</option><option value="image">Plots</option><option value="video">Videos</option></select></label><span>{filtered.length} matching files</span>
       </div>
       <div className="figure-layout">
-        <div className="figure-controls">{filtered.map(f=><button className={selected?.file===f.file?'selected':''} key={f.url} onClick={()=>setActive(f.file)} title={f.file}>{f.region} · {f.variable}<small>{f.file}</small></button>)}</div>
-        {selected?<div className="figure-preview"><div className="figure-title">{selected.file}</div>{selected.type==='video'?<video key={selected.url} className="figure-video" controls playsInline preload="metadata"><source src={selected.url}/><a href={selected.url}>Open video</a></video>:<a href={selected.url} target="_blank" rel="noreferrer" title="Open full-size figure"><img src={selected.url} alt={selected.label}/></a>}<div className="figure-meta">Region: {selected.region} · Variable: {selected.variable} · {selected.type==="video"?"Use player controls to watch":"Click figure to enlarge"}</div></div>:<p className="figure-empty">No media files match these filters.</p>}
+        <div className="figure-controls">{filtered.map(f=><button className={selected?.url===f.url?'selected':''} key={f.url} onClick={()=>setActive(f.url)} title={f.file}>{f.lead&&f.lead!=='All leads'?f.lead+' · ':''}{f.region} · {f.variable}<small>{f.file}</small></button>)}</div>
+        {selected?<div className="figure-preview"><div className="figure-title">{selected.lead&&selected.lead!=="All leads"?selected.lead+" · ":""}{selected.file}</div>{selected.type==='video'?<video key={selected.url} className="figure-video" controls playsInline preload="metadata"><source src={selected.url}/><a href={selected.url}>Open video</a></video>:<a href={selected.url} target="_blank" rel="noreferrer" title="Open full-size figure"><img src={selected.url} alt={selected.label}/></a>}<div className="figure-meta">Region: {selected.region} · Variable: {selected.variable} · {selected.type==="video"?"Use player controls to watch":"Click figure to enlarge"}</div></div>:<p className="figure-empty">No media files match these filters.</p>}
       </div>
     </>}
   </section>;
