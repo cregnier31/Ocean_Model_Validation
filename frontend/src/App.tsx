@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Activity, BarChart3, CircleDot, Database, GitCompareArrows, Layers, Menu, Route, Waves } from 'lucide-react';
+import { Activity, BarChart3, CircleDot, Database, Layers, Menu, Route, Waves } from 'lucide-react';
 import ScientificFigures, { type FigureGroup } from './ScientificFigures';
 import { classes, sections, type Section } from './data';
 
 const iconMap: Record<Section, typeof Activity> = {
   Overview: Layers,
   'Class 1–4 Validation': BarChart3,
-  'Model Intercomparison': GitCompareArrows,
   'Lagrangian Analysis': Route,
   'Eddy Tracking': CircleDot,
   'Ocean Dynamics Diagnostics': Activity,
@@ -40,7 +39,6 @@ export default function App() {
   const description:Record<Section,string>={
     Overview:'Indexed scientific plots and videos from your local collection',
     'Class 1–4 Validation':'Browse available Class 1 and Class 4 verification plots',
-    'Model Intercomparison':'Model comparison figures from the supplied validation results',
     'Lagrangian Analysis':'Trajectory diagnostics and separation statistics from supplied figures',
     'Eddy Tracking':'Eddy-tracking plots and illustrative videos, when available',
     'Ocean Dynamics Diagnostics':'Ocean-dynamics plots and illustrative videos, when available'
@@ -76,7 +74,6 @@ export default function App() {
           {metricClass==='Class 4'&&<div className="class-tabs">{class4Groups.map(g=><button key={g} className={'class-tab '+(class4View===g?'selected':'')} onClick={()=>setClass4View(g)}>{groupNames[g]}</button>)}</div>}
           {metricClass==='Class 1'||metricClass==='Class 4'?<ScientificFigures key={metricClass==='Class 1'?class1View:class4View} group={metricClass==='Class 1'?class1View:class4View}/>:<section className="panel figure-empty">No {metricClass} validation figures have been provided.</section>}
         </>}
-        {section==='Model Intercomparison'&&<ScientificFigures group="sst_drifters"/>}
         {section==='Lagrangian Analysis'&&<ScientificFigures group="lagrangian"/>}
         {section==='Eddy Tracking'&&<ScientificFigures group="eddy_tracking"/>}
         {section==='Ocean Dynamics Diagnostics'&&<><div className="class-tabs">{([['surface_maps','Surface maps'],['surface_timeseries','Annual time series'],['ocean_dynamics','Other diagnostics / videos']] as const).map(([g,label])=><button key={g} className={'class-tab '+(dynamicsView===g?'selected':'')} onClick={()=>setDynamicsView(g)}>{label}</button>)}</div><ScientificFigures key={dynamicsView} group={dynamicsView}/></>}
