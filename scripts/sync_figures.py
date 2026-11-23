@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Index scientific plots and videos from the local imgs tree into Vite public assets."""
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -89,9 +90,10 @@ def main():
             shutil.copy2(src, dest)
         kind = "video" if src.suffix.lower() in EXT_VIDEO else "image"
         region = next((r.replace("_", " ") for r in REGIONS if r.lower() in src.stem.lower()), "All regions")
+        lead = next((f"Lead {int(p[4:]):02d}" for p in src.relative_to(source).parts if re.fullmatch(r"lead\\d+", p, re.IGNORECASE)), "All leads")
         catalog.setdefault(group, []).append({
             "type": kind, "url": "/" + relative.as_posix(), "file": src.name,
-            "label": src.stem.replace("_", " "), "region": region,
+            "label": src.stem.replace("_", " "), "region": region, "lead": lead,
             "variable": variable(src.name) if kind == "image" else "Video"
         })
         counts[kind] += 1
