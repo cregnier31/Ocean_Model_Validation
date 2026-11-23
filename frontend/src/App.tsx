@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Activity, Anchor, ArrowUpRight, BarChart3, ChevronDown, CircleDot, Compass, Database, GitCompareArrows, Layers, Menu, Route, Waves } from 'lucide-react';
 import OceanMap from './components/OceanMap';
-import ScientificFigures from './ScientificFigures';
+import ScientificFigures, { type FigureGroup } from './ScientificFigures';
 import { classes, demoSeries, eddies, metrics, models, regions, score, sections, variables, type Metric, type Section } from './data';
 
 const iconMap: Record<Section, typeof Activity> = {
@@ -36,7 +36,7 @@ export default function App() {
   const [variable,setVariable] = useState<string>(variables[0]);
   const [metric,setMetric] = useState<Metric>('RMSE');
   const [metricClass,setMetricClass] = useState<string>(classes[0]);
-  const [class4View,setClass4View] = useState<'scores'|'profiles'>('profiles');
+  const [class4View,setClass4View] = useState<Exclude<FigureGroup,'class1'>>('profiles');
   const [menu,setMenu] = useState(false);
   const [apiStatus,setApiStatus] = useState<'demo'|'connected'>('demo');
   useEffect(()=>{const url=import.meta.env.VITE_API_URL as string | undefined;if(!url)return;
@@ -69,8 +69,8 @@ export default function App() {
       <div className="content">
         <div className="page-heading"><div><div className="eyebrow"><Waves size={15}/> OCEAN SCIENCE PLATFORM</div><h1>{section}</h1><p>{description[section]}</p></div><div className="demo-pill">● SYNTHETIC DATA</div></div>
         <div className="filter-bar"><Selector label="Forecast model" value={model} options={models} change={setModel}/><Selector label="Ocean region" value={region} options={regions} change={setRegion}/><Selector label="Variable" value={variable} options={variables} change={setVariable}/><Selector label="Metric" value={metric} options={metrics} change={v=>setMetric(v as Metric)}/></div>
-        {isValidation&&<><div className="class-tabs">{classes.map(c=><button key={c} className={'class-tab '+(metricClass===c?'selected':'')} onClick={()=>setMetricClass(c)}>{c}</button>)}</div>{metricClass==='Class 4'&&<div className="class-tabs"><button className={'class-tab '+(class4View==='profiles'?'selected':'')} onClick={()=>setClass4View('profiles')}>Vertical profiles</button><button className={'class-tab '+(class4View==='scores'?'selected':'')} onClick={()=>setClass4View('scores')}>Regional scores</button></div>}</>}
-        {isValidation&&(metricClass==='Class 1'||metricClass==='Class 4')&&<ScientificFigures key={metricClass+class4View} group={metricClass==='Class 1'?'class1':class4View==='profiles'?'profiles':'class4'}/>}
+        {isValidation&&<><div className="class-tabs">{classes.map(c=><button key={c} className={'class-tab '+(metricClass===c?'selected':'')} onClick={()=>setMetricClass(c)}>{c}</button>)}</div>{metricClass==='Class 4'&&<div className="class-tabs">{([['profiles','Vertical profiles'],['radar','Radar diagrams'],['sst_drifters','SST / Drifter scores'],['uv_drifters','UV drifter scores'],['aice','Sea ice']] as const).map(([key,label])=><button key={key} className={'class-tab '+(class4View===key?'selected':'')} onClick={()=>setClass4View(key)}>{label}</button>)}</div>}</>}
+        {isValidation&&(metricClass==='Class 1'||metricClass==='Class 4')&&<ScientificFigures key={metricClass+class4View} group={metricClass==='Class 1'?'class1':class4View}/>}
         <div className="metrics-grid">
           <MetricCard label={isLagrangian?'Demonstration tracks':isEddy?'Detected eddies':isDynamics?'Mean EKE (illustrative)':isCompare?'Models evaluated':'Mean RMSE'} value={isLagrangian?'3':isEddy?String(eddies.length):isDynamics?'0.087':isCompare?String(models.length):format(score(model,'RMSE'))} note={isLagrangian?'Illustrative trajectories':isEddy?'Synthetic feature catalog':isDynamics?'m²/s² · demo':isCompare?'Synthetic comparison':'Synthetic score only'} accent={blue}/>
           <MetricCard label={isLagrangian?'Track separation':isEddy?'Mean eddy radius':isDynamics?'Mean vorticity':'Correlation'} value={isLagrangian?'14.8 km':isEddy?'81 km':isDynamics?'0.024':format(score(model,'Correlation'))} note={isLagrangian?'Demo diagnostic':isEddy?'Illustrative polygons':isDynamics?'s⁻¹ × 10⁻⁵ · demo':'Synthetic score only'}/>
