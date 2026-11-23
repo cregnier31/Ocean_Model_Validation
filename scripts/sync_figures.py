@@ -76,7 +76,7 @@ def variable(name):
 def forecast_day(path):
     """Find a forecast day in a filename or directory (day01, day03, lead05)."""
     for part in reversed(path.parts):
-        match = re.search(r"(?<![a-z0-9])(?:day|lead)[_\\-]?(\\d+)(?![a-z0-9])", part.lower())
+        match = re.search(r"(?<![a-z0-9])(?:day|lead)[_-]?(\d+)(?![a-z0-9])", part.lower())
         if match:
             return int(match.group(1))
     return None
