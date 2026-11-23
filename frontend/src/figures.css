@@ -35,3 +35,10 @@
 .dynamics-gallery .forecast-timeline-ticks button{font-size:10px;padding:1px 3px}
 .dynamics-gallery .figure-meta{margin-top:5px}
 @media(max-width:750px){.dynamics-gallery .figure-layout{grid-template-columns:1fr}.dynamics-gallery .figure-preview img{max-height:65vh}}
+
+/* Give every scientific gallery the larger, cleaner plot presentation. */
+.scientific-gallery .figure-layout{grid-template-columns:190px minmax(0,1fr);gap:10px;padding:0 10px 12px}
+.scientific-gallery .figure-preview{padding:6px}
+.scientific-gallery .figure-preview img{max-height:min(76vh,850px)}
+.scientific-gallery .figure-meta{margin-top:5px}
+@media(max-width:750px){.scientific-gallery .figure-layout{grid-template-columns:1fr}.scientific-gallery .figure-preview img{max-height:65vh}}
