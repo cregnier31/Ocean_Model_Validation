@@ -8,3 +8,5 @@
 .figure-empty code{overflow-wrap:anywhere}
 
 .figure-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:0 18px 18px}.figure-summary button{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;text-align:left;color:#d8e8f3;background:#102d40;border:1px solid #31546a;border-radius:8px;cursor:pointer}.figure-summary button:hover{background:#155274}.figure-summary strong{font-size:18px;color:#69c6f2}
+
+.figure-video{display:block;width:100%;max-height:580px;aspect-ratio:16/9;background:#071621;border-radius:8px;object-fit:contain}
