@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 
-export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking' | 'ocean_dynamics' | 'overview' | 'surface_maps' | 'surface_timeseries';
+export type FigureGroup = 'class1' | 'class1_timeseries' | 'class1_maps' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking' | 'ocean_dynamics' | 'overview' | 'surface_maps' | 'surface_timeseries';
 type Figure = { type?: "image" | "video"; url: string; file: string; label: string; region: string; variable: string; lead?: string };
 type Catalog = Partial<Record<FigureGroup, Figure[]>>;
 const groups: Record<FigureGroup, {title:string;description:string}> = {
-  class1:{title:'Class 1 · SST ensemble validation',description:'Ensemble SST comparisons against OSTIA'},
+  class1:{title:'Class 1 · Other figures',description:'Class 1 figures placed directly in the CLASS1 folder'},
+  class1_timeseries:{title:'Class 1 · Time series',description:'Class 1 validation time-series plots'},
+  class1_maps:{title:'Class 1 · Maps',description:'Class 1 spatial validation maps'},
   profiles:{title:'Class 4 · Vertical profiles',description:'Temperature and salinity profiles by region'},
   radar:{title:'Class 4 · Radar diagrams',description:'Regional model skill and PR/PF diagnostics'},
   sst_drifters:{title:'Class 4 · SST and drifter scores',description:'Intercomparison, profile and drifter skill scores'},
