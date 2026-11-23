@@ -4,7 +4,7 @@ React + TypeScript + Vite application for browsing supplied ocean forecast valid
 
 ## Current behavior
 
-The frontend displays **only indexed PNG figures**. It does not calculate RMSE, bias, skill scores, model rankings, drifter trajectories, or eddy statistics. The overview reports counts of available image files, not verification results. Empty sections explicitly say when results have not been provided.
+The frontend displays **only indexed plots and videos**. It does not calculate RMSE, bias, skill scores, model rankings, drifter trajectories, or eddy statistics. The overview reports counts of available media files, not verification results. Empty sections explicitly say when results have not been provided.
 
 Supported folders:
 
@@ -18,7 +18,7 @@ imgs/
     UV_drifters/*.png
     aice/*.png
   lagrangian/*.png
-  eddy_tracking/*.png
+  eddy_tracking/*.{png,mp4,webm}\n  ocean_dynamics/*.{png,mp4,webm}\n  videos/\n    lagrangian/*.mp4\n    eddy_tracking/*.mp4\n    ocean_dynamics/*.mp4\n    class1/*.mp4\n    class4/*.mp4\n    overview/*.mp4
 ```
 
 ## Start
@@ -33,9 +33,9 @@ npm install --include=dev
 npm run dev
 ```
 
-Open http://localhost:5173. To sync images from a different location, pass the absolute path to the `imgs` directory. Re-run the sync command after adding PNGs, then refresh the browser.
+Open http://localhost:5173. To sync images from a different location, pass the absolute path to the `imgs` directory. Re-run the sync command after adding plots or videos, then refresh the browser.
 
-The sync script copies the PNGs to `frontend/public/imgs/` and writes `frontend/public/figures-manifest.json`. If you want the images tracked by GitHub, commit those generated assets separately.
+The sync script copies images and videos to `frontend/public/imgs/` and writes `frontend/public/figures-manifest.json`. If you want the images tracked by GitHub, commit those generated assets separately.
 
 ## Modules
 
@@ -51,3 +51,7 @@ The `backend/` folder contains an experimental FastAPI scaffold with synthetic e
 ## License
 
 MIT
+
+## Videos
+
+Videos in a section folder (for example `imgs/lagrangian/movie.mp4`) are displayed in that section. Alternatively place them in `imgs/videos/<section>/`, such as `imgs/videos/eddy_tracking/eddy.mp4` or `imgs/videos/overview/intro.mp4`. Supported video formats: MP4, WebM, OGV and MOV (browser playback depends on codec; H.264 MP4 is recommended). Videos use standard controls and do not autoplay. Re-run `python scripts/sync_figures.py imgs` after adding files. Videos illustrate the section and are not used to calculate validation scores.
