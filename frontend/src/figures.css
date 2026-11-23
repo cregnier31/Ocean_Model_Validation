@@ -10,3 +10,12 @@
 .figure-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:0 18px 18px}.figure-summary button{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;text-align:left;color:#d8e8f3;background:#102d40;border:1px solid #31546a;border-radius:8px;cursor:pointer}.figure-summary button:hover{background:#155274}.figure-summary strong{font-size:18px;color:#69c6f2}
 
 .figure-video{display:block;width:100%;max-height:580px;aspect-ratio:16/9;background:#071621;border-radius:8px;object-fit:contain}
+
+/* Forecast day control belongs immediately above the figure it changes. */
+.forecast-timeline{margin:0 0 14px;padding:12px 14px;background:#eaf3f8;border:1px solid #c9dce7;border-radius:8px;color:#18344a}
+.forecast-timeline-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:10px}
+.forecast-timeline-heading strong{font-size:15px;color:#075c87}
+.forecast-timeline input[type=range]{display:block;width:100%;margin:0;accent-color:#0879a6;cursor:pointer}
+.forecast-timeline-ticks{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-top:7px}
+.forecast-timeline-ticks button{border:0;background:transparent;color:#46667a;font-size:11px;padding:5px 3px;cursor:pointer}
+.forecast-timeline-ticks button.current{color:#075c87;font-weight:800;text-decoration:underline}
