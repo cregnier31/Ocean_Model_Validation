@@ -73,6 +73,14 @@ def variable(name):
             return value
     return "Unspecified"
 
+def forecast_day(path):
+    """Find a forecast day in a filename or directory (day01, day03, lead05)."""
+    for part in reversed(path.parts):
+        match = re.search(r"(?<![a-z0-9])(?:day|lead)[_\\-]?(\\d+)(?![a-z0-9])", part.lower())
+        if match:
+            return int(match.group(1))
+    return None
+
 def main():
     options = [Path(sys.argv[1]).expanduser().resolve()] if len(sys.argv) > 1 else [
         ROOT / "imgs", ROOT / "frontend" / "imgs"]
@@ -98,10 +106,12 @@ def main():
             shutil.copy2(src, dest)
         kind = "video" if src.suffix.lower() in EXT_VIDEO else "image"
         region = next((r.replace("_", " ") for r in REGIONS if r.lower() in src.stem.lower()), "All regions")
-        lead = next((f"Lead {int(p[4:]):02d}" for p in src.relative_to(source).parts if re.fullmatch(r"lead\\d+", p, re.IGNORECASE)), "All leads")
+        day = forecast_day(src.relative_to(source))
+        lead = f"Day {day:02d}" if day is not None else "All leads"
         catalog.setdefault(group, []).append({
             "type": kind, "url": "/" + relative.as_posix(), "file": src.name,
             "label": src.stem.replace("_", " "), "region": region, "lead": lead,
+            "forecast_day": day,
             "variable": variable(src.name) if kind == "image" else "Video"
         })
         counts[kind] += 1
@@ -149,7 +159,7 @@ def main():
             counts["video"] += 1
 
     for group in catalog:
-        catalog[group].sort(key=lambda x: (x["type"] != "video", x["file"].lower()))
+        catalog[group].sort(key=lambda x: (x["forecast_day"] is None, x["forecast_day"] if x["forecast_day"] is not None else 0, x["file"].lower()))
         print(f"{group}: {len(catalog[group])} media files")
     output = PUBLIC / "figures-manifest.json"
     output.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
