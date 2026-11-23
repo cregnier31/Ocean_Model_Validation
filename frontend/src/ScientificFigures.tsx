@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking' | 'ocean_dynamics' | 'overview';
+export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking' | 'ocean_dynamics' | 'overview' | 'surface_maps' | 'surface_timeseries';
 type Figure = { type?: "image" | "video"; url: string; file: string; label: string; region: string; variable: string };
 type Catalog = Partial<Record<FigureGroup, Figure[]>>;
 const groups: Record<FigureGroup, {title:string;description:string}> = {
@@ -13,7 +13,9 @@ const groups: Record<FigureGroup, {title:string;description:string}> = {
   lagrangian:{title:'Lagrangian diagnostics',description:'Trajectory separation, Liu scores, observation counts and statistics'},
   eddy_tracking:{title:'Eddy tracking',description:'Supplied eddy tracking figures and animations'},
   ocean_dynamics:{title:'Ocean dynamics',description:'Supplied circulation diagnostics and animations'},
-  overview:{title:'Scientific animations',description:'Videos illustrating ocean model validation'}
+  overview:{title:'Scientific animations',description:'Videos illustrating ocean model validation'},
+  surface_maps:{title:'Global surface dynamics · Maps',description:'Global velocity diagnostics at depth 0'},
+  surface_timeseries:{title:'Global surface dynamics · Annual time series',description:'Annual RMS diagnostics of global velocity fields'}
 };
 export default function ScientificFigures({group}:{group:FigureGroup}) {
   const [catalog,setCatalog] = useState<Catalog>({});
@@ -21,6 +23,7 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   const [region,setRegion] = useState('All regions');
   const [variable,setVariable] = useState('All variables');
   const [active,setActive] = useState<string | null>(null);
+  const [mediaType,setMediaType] = useState<'all'|'image'|'video'>('all');
   useEffect(()=>{
     let mounted=true;
     fetch('/figures-manifest.json',{cache:'no-store'})
@@ -32,7 +35,7 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   const figures=catalog[group]??[];
   const regions=useMemo(()=>['All regions',...Array.from(new Set(figures.map(f=>f.region))).sort()], [figures]);
   const variables=useMemo(()=>['All variables',...Array.from(new Set(figures.map(f=>f.variable))).sort()], [figures]);
-  const filtered=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable));
+  const filtered=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable)&&(mediaType==='all'||(f.type??'image')===mediaType));
   const selected=filtered.find(f=>f.file===active)??filtered[0];
   return <section className="panel scientific-gallery">
     <div className="panel-heading"><div><h2>{groups[group].title}</h2><p>{groups[group].description} · {figures.length} media files</p></div></div>
@@ -40,11 +43,11 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
       <div className="figure-filters">
         <label>Region <select value={regions.includes(region)?region:'All regions'} onChange={e=>{setRegion(e.target.value);setActive(null)}}>{regions.map(r=><option key={r}>{r}</option>)}</select></label>
         <label>Variable <select value={variables.includes(variable)?variable:'All variables'} onChange={e=>{setVariable(e.target.value);setActive(null)}}>{variables.map(v=><option key={v}>{v}</option>)}</select></label>
-        <span>{filtered.length} matching figures</span>
+        <label>Media <select value={mediaType} onChange={e=>{setMediaType(e.target.value as typeof mediaType);setActive(null)}}><option value="all">All media</option><option value="image">Plots</option><option value="video">Videos</option></select></label><span>{filtered.length} matching files</span>
       </div>
       <div className="figure-layout">
         <div className="figure-controls">{filtered.map(f=><button className={selected?.file===f.file?'selected':''} key={f.url} onClick={()=>setActive(f.file)} title={f.file}>{f.region} · {f.variable}<small>{f.file}</small></button>)}</div>
-        {selected?<div className="figure-preview"><div className="figure-title">{selected.file}</div>{selected.type==='video'?<video key={selected.url} className="figure-video" controls playsInline preload="metadata"><source src={selected.url}/><a href={selected.url}>Open video</a></video>:<a href={selected.url} target="_blank" rel="noreferrer" title="Open full-size figure"><img src={selected.url} alt={selected.label}/></a>}<div className="figure-meta">Region: {selected.region} · Variable: {selected.variable} · {selected.type==="video"?"Use player controls to watch":"Click figure to enlarge"}</div></div>:<p className="figure-empty">No figures match these filters.</p>}
+        {selected?<div className="figure-preview"><div className="figure-title">{selected.file}</div>{selected.type==='video'?<video key={selected.url} className="figure-video" controls playsInline preload="metadata"><source src={selected.url}/><a href={selected.url}>Open video</a></video>:<a href={selected.url} target="_blank" rel="noreferrer" title="Open full-size figure"><img src={selected.url} alt={selected.label}/></a>}<div className="figure-meta">Region: {selected.region} · Variable: {selected.variable} · {selected.type==="video"?"Use player controls to watch":"Click figure to enlarge"}</div></div>:<p className="figure-empty">No media files match these filters.</p>}
       </div>
     </>}
   </section>;
