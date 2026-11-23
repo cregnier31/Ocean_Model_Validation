@@ -19,3 +19,7 @@
 .forecast-timeline-ticks{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-top:7px}
 .forecast-timeline-ticks button{border:0;background:transparent;color:#46667a;font-size:11px;padding:5px 3px;cursor:pointer}
 .forecast-timeline-ticks button.current{color:#075c87;font-weight:800;text-decoration:underline}
+
+/* Ocean Dynamics: centered slider below the plot, 75% of preview width. */
+.forecast-timeline-dynamics{width:75%;box-sizing:border-box;margin:14px auto 10px}
+@media(max-width:600px){.forecast-timeline-dynamics{width:90%}}
