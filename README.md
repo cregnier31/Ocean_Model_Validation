@@ -63,3 +63,7 @@ The importer now reads `imgs/surface-dynamics-diagnostics/global_velocity/maps/`
 ### Surface forecast leads
 
 Surface-dynamics maps can be organized under `imgs/surface-dynamics-diagnostics/global_velocity/maps/lead01/`, `lead03/`, `lead05/`, and `lead07/`. The importer recursively indexes all four directories and records the lead from the directory name. The Surface maps gallery has a **Forecast lead** filter. Identical filenames at different leads remain separate selectable images because the gallery identifies media by its full URL. Annual RMS figures remain in `global_velocity/timeseries/`. The supplied tree contains 24 map files and 6 annual time-series files. Re-run the sync script and refresh after updating the source images.
+
+### Class 1 figure categories
+
+Class 1 has separate **Time series** and **Maps** tabs. Place figures under `imgs/CLASS1/timeseries/` and `imgs/CLASS1/maps/` respectively (nested directories are supported). Files placed directly in `imgs/CLASS1/` remain available under **Other figures**, so existing plots are not silently relabeled. Re-run `python scripts/sync_figures.py imgs` to update the catalog.
