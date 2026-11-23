@@ -59,3 +59,7 @@ Videos are discovered recursively in a section folder (for example `imgs/lagrang
 ### Surface dynamics and nested videos
 
 The importer now reads `imgs/surface-dynamics-diagnostics/global_velocity/maps/` and `imgs/surface-dynamics-diagnostics/global_velocity/timeseries/` as separate galleries. It also discovers MP4/WebM/etc files recursively under `imgs/lagrangian/` and `imgs/eddy_tracking/`, under `imgs/videos/lagrangian/` or `imgs/videos/eddy_tracking/`, and under a sibling `videos/` directory. The media filter in each gallery lets you select plots or videos. Run `python scripts/sync_figures.py imgs` again whenever you add files.
+
+### Surface forecast leads
+
+Surface-dynamics maps can be organized under `imgs/surface-dynamics-diagnostics/global_velocity/maps/lead01/`, `lead03/`, `lead05/`, and `lead07/`. The importer recursively indexes all four directories and records the lead from the directory name. The Surface maps gallery has a **Forecast lead** filter. Identical filenames at different leads remain separate selectable images because the gallery identifies media by its full URL. Annual RMS figures remain in `global_velocity/timeseries/`. The supplied tree contains 24 map files and 6 annual time-series files. Re-run the sync script and refresh after updating the source images.
