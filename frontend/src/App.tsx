@@ -13,14 +13,15 @@ const iconMap: Record<Section, typeof Activity> = {
 };
 const groupNames: Record<FigureGroup,string> = {
   class1:'Class 1',profiles:'Profiles',radar:'Radar diagrams',sst_drifters:'Regional scores',
-  uv_drifters:'Drifter velocity',aice:'Sea ice',lagrangian:'Lagrangian',eddy_tracking:'Eddy tracking',ocean_dynamics:'Ocean dynamics',overview:'Overview videos'
+  uv_drifters:'Drifter velocity',aice:'Sea ice',lagrangian:'Lagrangian',eddy_tracking:'Eddy tracking',ocean_dynamics:'Ocean dynamics',overview:'Overview videos',surface_maps:'Surface maps',surface_timeseries:'Annual time series'
 };
 const class4Groups: Exclude<FigureGroup,'class1'|'lagrangian'|'eddy_tracking'|'ocean_dynamics'|'overview'>[] = ['profiles','radar','sst_drifters','uv_drifters','aice'];
 type Catalog = Partial<Record<FigureGroup, {url:string;type?:string}[]>>;
 export default function App() {
   const [section,setSection] = useState<Section>('Overview');
   const [metricClass,setMetricClass] = useState<string>('Class 1');
-  const [class4View,setClass4View] = useState<Exclude<FigureGroup,'class1'|'lagrangian'|'eddy_tracking'>>('profiles');
+  const [class4View,setClass4View] = useState<typeof class4Groups[number]>('profiles');
+  const [dynamicsView,setDynamicsView] = useState<'surface_maps'|'surface_timeseries'|'ocean_dynamics'>('surface_maps');
   const [menu,setMenu] = useState(false);
   const [catalog,setCatalog] = useState<Catalog>({});
   const [loaded,setLoaded] = useState(false);
@@ -57,13 +58,13 @@ export default function App() {
         <div className="page-heading"><div><div className="eyebrow"><Waves size={15}/> OCEAN SCIENCE PLATFORM</div><h1>{section}</h1><p>{description[section]}</p></div></div>
         {section==='Overview'&&<>
           <div className="metrics-grid">
-            <div className="metric-card"><span className="muted label">Class 1 figures</span><div className="metric-value">{count('class1')}</div><span className="muted small">Indexed image files</span></div>
-            <div className="metric-card"><span className="muted label">Class 4 figures</span><div className="metric-value">{class4Groups.reduce((n,g)=>n+count(g),0)}</div><span className="muted small">Indexed image files</span></div>
-            <div className="metric-card"><span className="muted label">Lagrangian figures</span><div className="metric-value">{count('lagrangian')}</div><span className="muted small">Indexed image files</span></div>
+            <div className="metric-card"><span className="muted label">Class 1 media</span><div className="metric-value">{count('class1')}</div><span className="muted small">Indexed media files</span></div>
+            <div className="metric-card"><span className="muted label">Class 4 media</span><div className="metric-value">{class4Groups.reduce((n,g)=>n+count(g),0)}</div><span className="muted small">Indexed image files</span></div>
+            <div className="metric-card"><span className="muted label">Lagrangian media</span><div className="metric-value">{count('lagrangian')}</div><span className="muted small">Indexed image files</span></div>
             <div className="metric-card"><span className="muted label">Eddy tracking media</span><div className="metric-value">{count('eddy_tracking')}</div><span className="muted small">Indexed media files</span></div>
           </div>
           <section className="panel"><div className="panel-heading"><div><h2>Available results</h2><p>Counts describe supplied plots and videos, not calculated performance metrics</p></div></div>
-            <div className="figure-summary">{(['class1',...class4Groups,'lagrangian','eddy_tracking','ocean_dynamics','overview'] as FigureGroup[]).map(g=><button key={g} onClick={()=>{setSection(g==='lagrangian'?'Lagrangian Analysis':g==='eddy_tracking'?'Eddy Tracking':g==='ocean_dynamics'?'Ocean Dynamics Diagnostics':g==='overview'?'Overview':'Class 1–4 Validation');if(g==='class1')setMetricClass('Class 1');else if(class4Groups.includes(g as typeof class4Groups[number])){setMetricClass('Class 4');setClass4View(g as typeof class4Groups[number]);}}}><span>{groupNames[g]}</span><strong>{count(g)}</strong></button>)}</div>
+            <div className="figure-summary">{(['class1',...class4Groups,'lagrangian','eddy_tracking','surface_maps','surface_timeseries','ocean_dynamics','overview'] as FigureGroup[]).map(g=><button key={g} onClick={()=>{setSection(g==='lagrangian'?'Lagrangian Analysis':g==='eddy_tracking'?'Eddy Tracking':(['ocean_dynamics','surface_maps','surface_timeseries'].includes(g))?'Ocean Dynamics Diagnostics':g==='overview'?'Overview':'Class 1–4 Validation');if(g==='surface_maps'||g==='surface_timeseries'||g==='ocean_dynamics')setDynamicsView(g);if(g==='class1')setMetricClass('Class 1');else if(class4Groups.includes(g as typeof class4Groups[number])){setMetricClass('Class 4');setClass4View(g as typeof class4Groups[number]);}}}><span>{groupNames[g]}</span><strong>{count(g)}</strong></button>)}</div>
           </section>
           {count('overview')>0&&<ScientificFigures group="overview"/>}
           {total===0&&<p className="figure-empty">No indexed figures found. Run <code>python scripts/sync_figures.py imgs</code> from the repository root and refresh.</p>}
@@ -76,7 +77,7 @@ export default function App() {
         {section==='Model Intercomparison'&&<ScientificFigures group="sst_drifters"/>}
         {section==='Lagrangian Analysis'&&<ScientificFigures group="lagrangian"/>}
         {section==='Eddy Tracking'&&<ScientificFigures group="eddy_tracking"/>}
-        {section==='Ocean Dynamics Diagnostics'&&<ScientificFigures group="ocean_dynamics"/>}
+        {section==='Ocean Dynamics Diagnostics'&&<><div className="class-tabs">{([['surface_maps','Surface maps'],['surface_timeseries','Annual time series'],['ocean_dynamics','Other diagnostics / videos']] as const).map(([g,label])=><button key={g} className={'class-tab '+(dynamicsView===g?'selected':'')} onClick={()=>setDynamicsView(g)}>{label}</button>)}</div><ScientificFigures key={dynamicsView} group={dynamicsView}/></>}
         <footer className="footer"><span>Ocean Model Validation · figure-based scientific workspace</span><span>Supplied plots and videos only · No synthetic metrics</span></footer>
       </div>
     </main>
