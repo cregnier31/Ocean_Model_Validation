@@ -48,3 +48,31 @@ The class naming is a placeholder taxonomy: adapt Class 1–4 to your organizati
 
 ## License
 MIT
+
+## Display local validation figures
+
+Copy your PNG directories under `imgs/` at the repository root:
+
+```text
+imgs/
+  CLASS1/*.png
+  CLASS4/
+    profiles/*.png
+    radar/*.png
+    SST_drifters/*.png
+    UV_drifters/*.png
+    aice/*.png
+```
+
+Run from the repository root:
+
+```bash
+python scripts/sync_figures.py imgs
+cd frontend
+npm install --include=dev
+npm run dev
+```
+
+The synchronization script copies the images into `frontend/public/imgs/` and creates `frontend/public/figures-manifest.json`. In **Class 1–4 Validation**, select Class 1 or Class 4, then choose the Class 4 figure category. Use region and variable filters to browse the figures. Re-run the script after adding or removing PNGs.
+
+If your images are elsewhere, run `python scripts/sync_figures.py /absolute/path/to/imgs` instead. The images must be synced before building the frontend or running the app.
