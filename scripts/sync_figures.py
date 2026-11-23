@@ -40,7 +40,13 @@ VIDEO_FOLDERS = {
 }
 
 def variable(name):
-    n = name.lower()
+    n = Path(name).stem.lower()
+    # Recognize standalone CF variable names regardless of filename position.
+    # For example: uo_map.png, GLOBCURRENT-vo.png, and SST_timeseries.png.
+    if re.search(r"(?<![a-z0-9])uo(?![a-z0-9])", n):
+        return "Zonal current (uo)"
+    if re.search(r"(?<![a-z0-9])vo(?![a-z0-9])", n):
+        return "Meridional current (vo)"
     for key, value in [
         ("horizontal_divergence", "Horizontal divergence"),
         ("kinetic_energy", "Kinetic energy"),
