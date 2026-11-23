@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking';
-type Figure = { url: string; file: string; label: string; region: string; variable: string };
+export type FigureGroup = 'class1' | 'profiles' | 'radar' | 'sst_drifters' | 'uv_drifters' | 'aice' | 'lagrangian' | 'eddy_tracking' | 'ocean_dynamics' | 'overview';
+type Figure = { type?: "image" | "video"; url: string; file: string; label: string; region: string; variable: string };
 type Catalog = Partial<Record<FigureGroup, Figure[]>>;
 const groups: Record<FigureGroup, {title:string;description:string}> = {
   class1:{title:'Class 1 · SST ensemble validation',description:'Ensemble SST comparisons against OSTIA'},
@@ -11,7 +11,9 @@ const groups: Record<FigureGroup, {title:string;description:string}> = {
   uv_drifters:{title:'Class 4 · UV drifter scores',description:'Regional zonal and meridional current RMSD and bias'},
   aice:{title:'Class 4 · Sea-ice concentration',description:'Sea-ice concentration validation scores'},
   lagrangian:{title:'Lagrangian diagnostics',description:'Trajectory separation, Liu scores, observation counts and statistics'},
-  eddy_tracking:{title:'Eddy tracking',description:'Eddy tracking results when figures are available'}
+  eddy_tracking:{title:'Eddy tracking',description:'Supplied eddy tracking figures and animations'},
+  ocean_dynamics:{title:'Ocean dynamics',description:'Supplied circulation diagnostics and animations'},
+  overview:{title:'Scientific animations',description:'Videos illustrating ocean model validation'}
 };
 export default function ScientificFigures({group}:{group:FigureGroup}) {
   const [catalog,setCatalog] = useState<Catalog>({});
@@ -33,8 +35,8 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   const filtered=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable));
   const selected=filtered.find(f=>f.file===active)??filtered[0];
   return <section className="panel scientific-gallery">
-    <div className="panel-heading"><div><h2>{groups[group].title}</h2><p>{groups[group].description} · {figures.length} figures</p></div></div>
-    {error||figures.length===0?<p className="figure-empty">No images indexed for this category. From the repository root, run <code>python scripts/sync_figures.py imgs</code> (or provide the full path to your <code>imgs</code> directory), then refresh the page.</p>:<>
+    <div className="panel-heading"><div><h2>{groups[group].title}</h2><p>{groups[group].description} · {figures.length} media files</p></div></div>
+    {error||figures.length===0?<p className="figure-empty">No plots or videos indexed for this category. From the repository root, run <code>python scripts/sync_figures.py imgs</code> (or provide the full path to your <code>imgs</code> directory), then refresh the page.</p>:<>
       <div className="figure-filters">
         <label>Region <select value={regions.includes(region)?region:'All regions'} onChange={e=>{setRegion(e.target.value);setActive(null)}}>{regions.map(r=><option key={r}>{r}</option>)}</select></label>
         <label>Variable <select value={variables.includes(variable)?variable:'All variables'} onChange={e=>{setVariable(e.target.value);setActive(null)}}>{variables.map(v=><option key={v}>{v}</option>)}</select></label>
@@ -42,7 +44,7 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
       </div>
       <div className="figure-layout">
         <div className="figure-controls">{filtered.map(f=><button className={selected?.file===f.file?'selected':''} key={f.url} onClick={()=>setActive(f.file)} title={f.file}>{f.region} · {f.variable}<small>{f.file}</small></button>)}</div>
-        {selected?<div className="figure-preview"><div className="figure-title">{selected.file}</div><a href={selected.url} target="_blank" rel="noreferrer" title="Open full-size figure"><img src={selected.url} alt={selected.label}/></a><div className="figure-meta">Region: {selected.region} · Variable: {selected.variable} · Click figure to enlarge</div></div>:<p className="figure-empty">No figures match these filters.</p>}
+        {selected?<div className="figure-preview"><div className="figure-title">{selected.file}</div>{selected.type==='video'?<video key={selected.url} className="figure-video" controls playsInline preload="metadata"><source src={selected.url}/><a href={selected.url}>Open video</a></video>:<a href={selected.url} target="_blank" rel="noreferrer" title="Open full-size figure"><img src={selected.url} alt={selected.label}/></a>}<div className="figure-meta">Region: {selected.region} · Variable: {selected.variable} · {selected.type==="video"?"Use player controls to watch":"Click figure to enlarge"}</div></div>:<p className="figure-empty">No figures match these filters.</p>}
       </div>
     </>}
   </section>;
