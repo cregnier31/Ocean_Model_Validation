@@ -17,6 +17,8 @@ REGIONS = ["Antarctic_Circumpolar", "Arctic_Ocean", "Baltic_Sea", "Full_Domain",
            "Tropical_Pacific_Ocean"]
 FOLDERS = {
     "CLASS1": "class1",
+    "CLASS1/timeseries": "class1_timeseries",
+    "CLASS1/maps": "class1_maps",
     "CLASS4/profiles": "profiles", "CLASS4/radar": "radar",
     "CLASS4/SST_drifters": "sst_drifters", "CLASS4/UV_drifters": "uv_drifters",
     "CLASS4/aice": "aice",
@@ -28,7 +30,7 @@ FOLDERS = {
     "surface_dynamics_diagnostics/global_velocity/timeseries": "surface_timeseries",
 }
 VIDEO_FOLDERS = {
-    "class1": "class1", "class4": "profiles", "profiles": "profiles",
+    "class1": "class1", "class1_timeseries": "class1_timeseries", "class1_maps": "class1_maps", "class4": "profiles", "profiles": "profiles",
     "radar": "radar", "sst_drifters": "sst_drifters", "uv_drifters": "uv_drifters",
     "aice": "aice", "lagrangian": "lagrangian", "eddy_tracking": "eddy_tracking",
     "eddy-tracking": "eddy_tracking", "ocean_dynamics": "ocean_dynamics",
@@ -102,6 +104,11 @@ def main():
         base = source / folder
         if base.is_dir():
             for src in sorted(base.rglob("*")):
+                # CLASS1 is a legacy catch-all: route named subfolders to their own galleries.
+                if folder == "CLASS1" and src.is_relative_to(source / "CLASS1" / "maps"):
+                    continue
+                if folder == "CLASS1" and src.is_relative_to(source / "CLASS1" / "timeseries"):
+                    continue
                 add(src, group)
 
     # Videos may be placed in imgs/videos/<section>/ or in nested section folders.
