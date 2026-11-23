@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import Plot from 'react-plotly.js';
-import { Activity, Anchor, ArrowUpRight, BarChart3, ChevronDown, CircleDot, Compass, Database, GitCompareArrows, Layers, Menu, Route, Waves } from 'lucide-react';
-import OceanMap from './components/OceanMap';
+import { Activity, BarChart3, CircleDot, Database, GitCompareArrows, Layers, Menu, Route, Waves } from 'lucide-react';
 import ScientificFigures, { type FigureGroup } from './ScientificFigures';
-import { classes, demoSeries, eddies, metrics, models, regions, score, sections, variables, type Metric, type Section } from './data';
+import { classes, sections, type Section } from './data';
 
 const iconMap: Record<Section, typeof Activity> = {
   Overview: Layers,
@@ -13,77 +11,71 @@ const iconMap: Record<Section, typeof Activity> = {
   'Eddy Tracking': CircleDot,
   'Ocean Dynamics Diagnostics': Activity,
 };
-const blue = '#48bdf5';
-const colors = ['#48bdf5', '#2dd4bf', '#fbbf24'];
-const format = (value: number) => value.toFixed(3);
-
-function MetricCard({label, value, note, accent}: {label:string; value:string; note:string;accent?:string}) {
-  return <div className="metric-card"><span className="muted label">{label}</span><div className="metric-value" style={{color:accent}}>{value}</div><span className="muted small">{note}</span></div>;
-}
-function Selector({label, value, options, change}: {label:string;value:string;options:readonly string[];change:(v:string)=>void}) {
-  return <label className="selector"><span className="muted small">{label}</span><span className="select-wrap"><select value={value} onChange={e=>change(e.target.value)}>{options.map(o=><option key={o} value={o}>{o}</option>)}</select><ChevronDown size={14}/></span></label>;
-}
-function Chart({selectedMetric, selectedModels, height=290}: {selectedMetric:Metric; selectedModels:string[];height?:number}) {
-  return <Plot data={selectedModels.map((m,i)=>({...demoSeries(m,selectedMetric),type:'scatter' as const,mode:'lines' as const,name:m,line:{color:colors[i % colors.length],width:2.5,shape:'spline' as const}}))}
-    layout={{height, autosize:true,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{color:'#9ab2c6',size:11},margin:{l:48,r:20,b:42,t:14},xaxis:{gridcolor:'#24465a',tickfont:{size:10}},yaxis:{gridcolor:'#24465a',title:{text:selectedMetric, font:{size:11}}},legend:{orientation:'h',y:-0.28,x:0},hovermode:'x unified'}}
-    useResizeHandler style={{width:'100%'}} config={{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d']}} />;
-}
-
+const groupNames: Record<FigureGroup,string> = {
+  class1:'Class 1',profiles:'Profiles',radar:'Radar diagrams',sst_drifters:'Regional scores',
+  uv_drifters:'Drifter velocity',aice:'Sea ice',lagrangian:'Lagrangian',eddy_tracking:'Eddy tracking'
+};
+const class4Groups: Exclude<FigureGroup,'class1'|'lagrangian'|'eddy_tracking'>[] = ['profiles','radar','sst_drifters','uv_drifters','aice'];
+type Catalog = Partial<Record<FigureGroup, {url:string}[]>>;
 export default function App() {
   const [section,setSection] = useState<Section>('Overview');
-  const [model,setModel] = useState<string>(models[0]);
-  const [region,setRegion] = useState<string>(regions[0]);
-  const [variable,setVariable] = useState<string>(variables[0]);
-  const [metric,setMetric] = useState<Metric>('RMSE');
-  const [metricClass,setMetricClass] = useState<string>(classes[0]);
-  const [class4View,setClass4View] = useState<Exclude<FigureGroup,'class1'>>('profiles');
+  const [metricClass,setMetricClass] = useState<string>('Class 1');
+  const [class4View,setClass4View] = useState<Exclude<FigureGroup,'class1'|'lagrangian'|'eddy_tracking'>>('profiles');
   const [menu,setMenu] = useState(false);
-  const [apiStatus,setApiStatus] = useState<'demo'|'connected'>('demo');
-  useEffect(()=>{const url=import.meta.env.VITE_API_URL as string | undefined;if(!url)return;
-    fetch(url+'/health').then(r=>{if(r.ok)setApiStatus('connected');}).catch(()=>setApiStatus('demo'));
+  const [catalog,setCatalog] = useState<Catalog>({});
+  const [loaded,setLoaded] = useState(false);
+  useEffect(()=>{
+    let mounted=true;
+    fetch('/figures-manifest.json',{cache:'no-store'})
+      .then(r=>{if(!r.ok)throw new Error('Missing manifest');return r.json() as Promise<Catalog>})
+      .then(d=>{if(mounted){setCatalog(d);setLoaded(true)}})
+      .catch(()=>{if(mounted)setLoaded(true)});
+    return ()=>{mounted=false};
   },[]);
-  const isCompare=section==='Model Intercomparison';
-  const isLagrangian=section==='Lagrangian Analysis';
-  const isEddy=section==='Eddy Tracking';
-  const isDynamics=section==='Ocean Dynamics Diagnostics';
-  const isValidation=section==='Class 1–4 Validation';
-  const mapMode = isLagrangian?'lagrangian':isEddy?'eddy':isDynamics?'diagnostics':'overview';
-  const description: Record<Section,string> = {
-    Overview:'Performance at a glance across ocean forecasting systems',
-    'Class 1–4 Validation':'Explore forecast accuracy across validation categories',
-    'Model Intercomparison':'Compare forecasting systems against common references',
-    'Lagrangian Analysis':'Explore simulated drifter paths and trajectory statistics',
-    'Eddy Tracking':'Inspect mesoscale eddies and their evolution',
-    'Ocean Dynamics Diagnostics':'Investigate circulation and flow diagnostics',
+  const total=Object.values(catalog).reduce((n,arr)=>n+(arr?.length??0),0);
+  const count=(group:FigureGroup)=>catalog[group]?.length??0;
+  const description:Record<Section,string>={
+    Overview:'Indexed scientific validation figures from your local image collection',
+    'Class 1–4 Validation':'Browse available Class 1 and Class 4 verification plots',
+    'Model Intercomparison':'Model comparison figures from the supplied validation results',
+    'Lagrangian Analysis':'Trajectory diagnostics and separation statistics from supplied figures',
+    'Eddy Tracking':'Eddy-tracking results, when available',
+    'Ocean Dynamics Diagnostics':'Ocean-dynamics results, when available'
   };
   return <div className="app">
     <aside className={'sidebar '+(menu?'open':'')}>
       <div className="brand"><div className="brand-icon"><Waves size={25}/></div><div><strong>OCEAN MODEL</strong><span>VALIDATION</span></div></div>
       <div className="sidebar-heading">WORKSPACE</div>
-      <nav aria-label="Main navigation">{sections.map(s=>{const Icon=iconMap[s];return <button key={s} className={'nav-item '+(section===s?'active':'')} onClick={()=>{setSection(s);setMenu(false)}}><Icon size={18}/><span>{s}</span></button>})}</nav>
-      <div className="sidebar-footer"><div className="sidebar-foot-icon"><Database size={17}/></div><div><strong>Scientific workspace</strong><span>{apiStatus==='connected'?'API available':'Local demonstration'}</span></div></div>
+      <nav aria-label="Main navigation">{sections.map(item=>{const Icon=iconMap[item];return <button key={item} className={'nav-item '+(section===item?'active':'')} onClick={()=>{setSection(item);setMenu(false)}}><Icon size={18}/><span>{item}</span></button>})}</nav>
+      <div className="sidebar-footer"><div className="sidebar-foot-icon"><Database size={17}/></div><div><strong>Scientific figures</strong><span>{loaded?total+' indexed PNG files':'Loading figure catalog'}</span></div></div>
     </aside>
     {menu&&<button className="backdrop" aria-label="Close menu" onClick={()=>setMenu(false)}/>}
     <main className="main">
-      <header className="topbar"><button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu"><Menu size={22}/></button><div className="breadcrumb">Workspace <span>/</span> <strong>{section}</strong></div><div className="top-meta"><span className="status-indicator"/>{apiStatus==='connected'?'API connected · demo metrics':'Demo data · no live observations'}</div></header>
+      <header className="topbar"><button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu"><Menu size={22}/></button><div className="breadcrumb">Workspace <span>/</span> <strong>{section}</strong></div><div className="top-meta">{loaded?total+' figure files indexed':'Loading figure catalog'}</div></header>
       <div className="content">
-        <div className="page-heading"><div><div className="eyebrow"><Waves size={15}/> OCEAN SCIENCE PLATFORM</div><h1>{section}</h1><p>{description[section]}</p></div><div className="demo-pill">● SYNTHETIC DATA</div></div>
-        <div className="filter-bar"><Selector label="Forecast model" value={model} options={models} change={setModel}/><Selector label="Ocean region" value={region} options={regions} change={setRegion}/><Selector label="Variable" value={variable} options={variables} change={setVariable}/><Selector label="Metric" value={metric} options={metrics} change={v=>setMetric(v as Metric)}/></div>
-        {isValidation&&<><div className="class-tabs">{classes.map(c=><button key={c} className={'class-tab '+(metricClass===c?'selected':'')} onClick={()=>setMetricClass(c)}>{c}</button>)}</div>{metricClass==='Class 4'&&<div className="class-tabs">{([['profiles','Vertical profiles'],['radar','Radar diagrams'],['sst_drifters','SST / Drifter scores'],['uv_drifters','UV drifter scores'],['aice','Sea ice']] as const).map(([key,label])=><button key={key} className={'class-tab '+(class4View===key?'selected':'')} onClick={()=>setClass4View(key)}>{label}</button>)}</div>}</>}
-        {isValidation&&(metricClass==='Class 1'||metricClass==='Class 4')&&<ScientificFigures key={metricClass+class4View} group={metricClass==='Class 1'?'class1':class4View}/>}
-        <div className="metrics-grid">
-          <MetricCard label={isLagrangian?'Demonstration tracks':isEddy?'Detected eddies':isDynamics?'Mean EKE (illustrative)':isCompare?'Models evaluated':'Mean RMSE'} value={isLagrangian?'3':isEddy?String(eddies.length):isDynamics?'0.087':isCompare?String(models.length):format(score(model,'RMSE'))} note={isLagrangian?'Illustrative trajectories':isEddy?'Synthetic feature catalog':isDynamics?'m²/s² · demo':isCompare?'Synthetic comparison':'Synthetic score only'} accent={blue}/>
-          <MetricCard label={isLagrangian?'Track separation':isEddy?'Mean eddy radius':isDynamics?'Mean vorticity':'Correlation'} value={isLagrangian?'14.8 km':isEddy?'81 km':isDynamics?'0.024':format(score(model,'Correlation'))} note={isLagrangian?'Demo diagnostic':isEddy?'Illustrative polygons':isDynamics?'s⁻¹ × 10⁻⁵ · demo':'Synthetic score only'}/>
-          <MetricCard label={isLagrangian?'Tracked interval':isEddy?'Mean lifetime':isDynamics?'Divergence':'Skill score'} value={isLagrangian?'30 days':isEddy?'42 days':isDynamics?'0.013':format(score(model,'Skill Score'))} note={isLagrangian?'Demonstration only':isEddy?'Synthetic catalog':isDynamics?'s⁻¹ × 10⁻⁵ · demo':'Synthetic score only'}/>
-          <MetricCard label="Data status" value="DEMO" note="Not validated scientific measurements" accent="#fbbf24"/>
-        </div>
-        <div className="visual-grid">
-          <section className="panel map-panel"><div className="panel-heading"><div><h2>{isLagrangian?'Lagrangian trajectories':isEddy?'Mesoscale eddy detection':isDynamics?'Ocean circulation features':'Ocean spatial explorer'}</h2><p>North Atlantic · illustrative geospatial overlays</p></div><Compass size={19}/></div><OceanMap mode={mapMode}/><div className="map-caption"><span><span className="dot teal"/> Drifter tracks</span><span><span className="dot violet"/> Eddy features</span><span className="muted">Illustrative locations</span></div></section>
-          <section className="panel chart-panel"><div className="panel-heading"><div><h2>{isCompare?'Model performance comparison':isDynamics?'Diagnostics time series':isValidation?metricClass+' · '+metric:'Validation time series'}</h2><p>{isCompare?'Three synthetic model series':model+' · '+metric}</p></div><BarChart3 size={19}/></div><Chart selectedMetric={metric} selectedModels={isCompare?[...models]:[model]} /><div className="chart-note">All plotted scores are generated demonstration values, not model verification.</div></section>
-        </div>
-        <div className="bottom-grid"><section className="panel table-panel"><div className="panel-heading"><div><h2>{isEddy?'Eddy feature catalog':isLagrangian?'Lagrangian tracks':'Model scorecard'}</h2><p>{isCompare?'Common metric comparison':isEddy?'Synthetic eddy statistics':'Illustrative validation output'}</p></div><ArrowUpRight size={18}/></div><div className="table-scroll"><table><thead><tr>{(isEddy?['Feature','Type','Radius','Lifetime']:isLagrangian?['Track','Status','Region','Source']:['Model','RMSE','Correlation','Skill score']).map(c=><th key={c}>{c}</th>)}</tr></thead><tbody>{isEddy?eddies.map(e=><tr key={e.id}><td>{e.id}</td><td>{e.kind}</td><td>{e.radius/1000} km</td><td>{e.lifetime} d</td></tr>):isLagrangian?['A','B','C'].map(n=><tr key={n}><td>Drifter {n}</td><td>Illustrative</td><td>North Atlantic</td><td>Demo</td></tr>):models.map(m=><tr key={m}><td>{m}</td><td>{format(score(m,'RMSE'))}</td><td>{format(score(m,'Correlation'))}</td><td>{format(score(m,'Skill Score'))}</td></tr>)}</tbody></table></div></section>
-        <section className="panel about-panel"><div className="panel-heading"><div><h2>Analysis workspace</h2><p>Available modules</p></div><Anchor size={19}/></div><div className="quick-links">{sections.filter(s=>s!==section).slice(0,4).map(s=>{const Icon=iconMap[s];return <button key={s} onClick={()=>setSection(s)}><span><Icon size={15}/>{s}</span><ArrowUpRight size={15}/></button>})}</div></section></div>
-        <footer className="footer"><span>Ocean Model Validation · prototype v0.1</span><span>For scientific development · Synthetic data only</span></footer>
+        <div className="page-heading"><div><div className="eyebrow"><Waves size={15}/> OCEAN SCIENCE PLATFORM</div><h1>{section}</h1><p>{description[section]}</p></div></div>
+        {section==='Overview'&&<>
+          <div className="metrics-grid">
+            <div className="metric-card"><span className="muted label">Class 1 figures</span><div className="metric-value">{count('class1')}</div><span className="muted small">Indexed image files</span></div>
+            <div className="metric-card"><span className="muted label">Class 4 figures</span><div className="metric-value">{class4Groups.reduce((n,g)=>n+count(g),0)}</div><span className="muted small">Indexed image files</span></div>
+            <div className="metric-card"><span className="muted label">Lagrangian figures</span><div className="metric-value">{count('lagrangian')}</div><span className="muted small">Indexed image files</span></div>
+            <div className="metric-card"><span className="muted label">Eddy tracking figures</span><div className="metric-value">{count('eddy_tracking')}</div><span className="muted small">Indexed image files</span></div>
+          </div>
+          <section className="panel"><div className="panel-heading"><div><h2>Available results</h2><p>Counts describe PNG files, not calculated performance metrics</p></div></div>
+            <div className="figure-summary">{(['class1',...class4Groups,'lagrangian','eddy_tracking'] as FigureGroup[]).map(g=><button key={g} onClick={()=>{setSection(g==='lagrangian'?'Lagrangian Analysis':g==='eddy_tracking'?'Eddy Tracking':'Class 1–4 Validation');if(g==='class1')setMetricClass('Class 1');else if(class4Groups.includes(g as typeof class4Groups[number])){setMetricClass('Class 4');setClass4View(g as typeof class4Groups[number]);}}}><span>{groupNames[g]}</span><strong>{count(g)}</strong></button>)}</div>
+          </section>
+          {total===0&&<p className="figure-empty">No indexed figures found. Run <code>python scripts/sync_figures.py imgs</code> from the repository root and refresh.</p>}
+        </>}
+        {section==='Class 1–4 Validation'&&<>
+          <div className="class-tabs">{classes.map(c=><button key={c} className={'class-tab '+(metricClass===c?'selected':'')} onClick={()=>setMetricClass(c)}>{c}</button>)}</div>
+          {metricClass==='Class 4'&&<div className="class-tabs">{class4Groups.map(g=><button key={g} className={'class-tab '+(class4View===g?'selected':'')} onClick={()=>setClass4View(g)}>{groupNames[g]}</button>)}</div>}
+          {metricClass==='Class 1'||metricClass==='Class 4'?<ScientificFigures key={metricClass+class4View} group={metricClass==='Class 1'?'class1':class4View}/>:<section className="panel figure-empty">No {metricClass} validation figures have been provided.</section>}
+        </>}
+        {section==='Model Intercomparison'&&<ScientificFigures group="sst_drifters"/>}
+        {section==='Lagrangian Analysis'&&<ScientificFigures group="lagrangian"/>}
+        {section==='Eddy Tracking'&&<ScientificFigures group="eddy_tracking"/>}
+        {section==='Ocean Dynamics Diagnostics'&&<section className="panel figure-empty">No ocean-dynamics figures or numerical diagnostics have been provided. This section will remain empty until results are supplied.</section>}
+        <footer className="footer"><span>Ocean Model Validation · figure-based scientific workspace</span><span>Figures are supplied results; no synthetic metrics are displayed</span></footer>
       </div>
     </main>
   </div>;
