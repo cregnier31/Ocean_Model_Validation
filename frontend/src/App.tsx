@@ -52,7 +52,7 @@ export default function App() {
     </aside>
     {menu&&<button className="backdrop" aria-label="Close menu" onClick={()=>setMenu(false)}/>}
     <main className="main">
-      <header className="topbar"><button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu"><Menu size={22}/></button><div className="breadcrumb">Workspace <span>/</span> <strong>{section}</strong></div><div className="top-meta">{loaded?total+' media files indexed':'Loading figure catalog'}</div></header>
+      <header className="topbar"><button className="menu-button" onClick={()=>setMenu(!menu)} aria-label="Toggle menu"><Menu size={22}/></button><div className="breadcrumb">Workspace <span>/</span> <strong>{section}</strong></div><div className="top-meta">{loaded?total+' media files indexed · '+videos+' videos':'Loading figure catalog'}</div></header>
       <div className="content">
         <div className="page-heading"><div><div className="eyebrow"><Waves size={15}/> OCEAN SCIENCE PLATFORM</div><h1>{section}</h1><p>{description[section]}</p></div></div>
         {section==='Overview'&&<>
