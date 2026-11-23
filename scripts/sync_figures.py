@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "frontend" / "public"
-CATEGORIES = {"CLASS1": "class1", "CLASS4/profiles": "profiles", "CLASS4/radar": "radar", "CLASS4/SST_drifters": "sst_drifters", "CLASS4/UV_drifters": "uv_drifters", "CLASS4/aice": "aice"}
+CATEGORIES = {"CLASS1": "class1", "CLASS4/profiles": "profiles", "CLASS4/radar": "radar", "CLASS4/SST_drifters": "sst_drifters", "CLASS4/UV_drifters": "uv_drifters", "CLASS4/aice": "aice", "lagrangian": "lagrangian", "eddy_tracking": "eddy_tracking"}
 REGIONS = ["Antarctic_Circumpolar","Arctic_Ocean","Baltic_Sea","Full_Domain","Global_60S_60N","Iberian_Biscay_Irish","Indian_Ocean","Mediterranean_Sea","North_Atlantic_Ocean","North_Pacific_Ocean","North_Sea","South_Atlantic_Ocean","South_Pacific_Ocean","Tropical_Atlantic_Ocean","Tropical_Pacific_Ocean"]
 def variable(name):
     if "thetao" in name: return "Temperature (thetao)"
@@ -16,11 +16,15 @@ def variable(name):
     if "filtr_vo" in name: return "Meridional current (vo)"
     if "siconc" in name or "aice" in name: return "Sea-ice concentration"
     if "SST" in name: return "Sea surface temperature"
+    if "Liu_score" in name: return "Liu score"
+    if "Nobs" in name: return "Observation count"
+    if "sep-dist" in name or "separation" in name or "Hist_sep" in name: return "Separation distance"
+    if "Hist_stats" in name: return "Trajectory statistics"
     return "Multi-variable"
 
 def main():
     options = [Path(sys.argv[1]).expanduser().resolve()] if len(sys.argv) > 1 else [ROOT / "imgs", ROOT / "frontend" / "imgs"]
-    source = next((p for p in options if (p / "CLASS1").is_dir() or (p / "CLASS4").is_dir()), None)
+    source = next((p for p in options if (p / "CLASS1").is_dir() or (p / "CLASS4").is_dir() or (p / "lagrangian").is_dir() or (p / "eddy_tracking").is_dir()), None)
     if source is None:
         raise SystemExit("Cannot find imgs/CLASS1 or imgs/CLASS4. Usage: python scripts/sync_figures.py /absolute/path/to/imgs")
     manifest = {}
