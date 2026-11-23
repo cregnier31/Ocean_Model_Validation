@@ -39,7 +39,7 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   const regions=useMemo(()=>['All regions',...Array.from(new Set(figures.map(f=>f.region))).sort()], [figures]);
   const days=useMemo(()=>Array.from(new Set(figures.map(f=>f.forecast_day).filter((d):d is number=>typeof d==='number'))).sort((a,b)=>a-b), [figures]);
   const selectedDay=days[Math.min(dayIndex,days.length-1)];
-  const signature=(url:string)=>url.replace(/(day|lead)[_-]?\\d+/gi,'$1##');
+  const signature=(url:string)=>url.replace(/(day|lead)[_-]?\d+/gi,'$1##');
   const variables=useMemo(()=>['All variables',...Array.from(new Set(figures.map(f=>f.variable))).sort()], [figures]);
   const filtered=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable)&&(days.length===0||f.forecast_day===selectedDay)&&(mediaType==='all'||(f.type??'image')===mediaType));
   const selected=filtered.find(f=>signature(f.url)===active)??filtered[0];
