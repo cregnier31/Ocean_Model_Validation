@@ -74,6 +74,21 @@ def variable(name):
             return value
     return "Unspecified"
 
+# Extend this list when new reference products are introduced.
+CLASS1_PRODUCTS = ["OSTIA", "GLOBCURRENT", "GLORYS", "DUACS", "OISST"]
+
+def class1_metadata(path):
+    name = path.as_posix()
+    metric = re.search(r"(?<![a-z0-9])(RMSD|MAE)(?![a-z0-9])", name, re.I)
+    product = next((p for p in CLASS1_PRODUCTS if re.search(r"(?<![a-z0-9])" + re.escape(p) + r"(?![a-z0-9])", name, re.I)), None)
+    # Arbitrary product names can be supplied as products/<name>/ folders.
+    for i, part in enumerate(path.parts[:-1]):
+        if part.lower() in ("product", "products") and i + 1 < len(path.parts) - 1:
+            product = path.parts[i + 1]
+            break
+    return {"statistic": metric.group(1).upper() if metric else "Unspecified",
+            "product": product or "Unspecified"}
+
 def forecast_day(path):
     """Find a forecast day in a filename or directory (day01, day03, lead05)."""
     for part in reversed(path.parts):
@@ -113,6 +128,7 @@ def main():
             "type": kind, "url": "/" + relative.as_posix(), "file": src.name,
             "label": src.stem.replace("_", " "), "region": region, "lead": lead,
             "forecast_day": day,
+            **(class1_metadata(src.relative_to(source)) if group.startswith("class1") else {}),
             "variable": variable(src.name) if kind == "image" else "Video"
         })
         counts[kind] += 1
