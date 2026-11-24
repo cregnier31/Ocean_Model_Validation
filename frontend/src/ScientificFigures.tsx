@@ -39,12 +39,16 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
   },[]);
   const figures=catalog[group]??[];
   const regions=useMemo(()=>['All regions',...Array.from(new Set(figures.map(f=>f.region))).sort()], [figures]);
-  const products=['All products',...Array.from(new Set(figures.map(f=>f.product??'Unspecified'))).sort()];
-  const candidates=figures.filter(f=>(region==='All regions'||f.region===region)&&(variable==='All variables'||f.variable===variable)&&(!isClass1||product==='All products'||(f.product??'Unspecified')===product)&&(mediaType==='all'||(f.type??'image')===mediaType));
+  const order=['Sea surface temperature','Zonal current (uo)','Meridional current (vo)'];
+  const availableVariables=Array.from(new Set(figures.map(f=>f.variable))).sort((a,b)=>(order.includes(a)?order.indexOf(a):99)-(order.includes(b)?order.indexOf(b):99)||a.localeCompare(b));
+  const variables=isClass1?availableVariables:['All variables',...availableVariables.sort()];
+  const selectedVariable=variables.includes(variable)?variable:variables[0];
+  const products=Array.from(new Set(figures.filter(f=>f.variable===selectedVariable).map(f=>f.product??'Unspecified'))).sort((a,b)=>Number(b==='OSTIA')-Number(a==='OSTIA')||Number(a==='Unspecified')-Number(b==='Unspecified')||a.localeCompare(b));
+  const selectedProduct=products.includes(product)?product:products[0];
+  const candidates=figures.filter(f=>(region==='All regions'||f.region===region)&&(selectedVariable==='All variables'||f.variable===selectedVariable)&&(!isClass1||(f.product??'Unspecified')===selectedProduct)&&(mediaType==='all'||(f.type??'image')===mediaType));
   const days=Array.from(new Set(candidates.map(f=>f.forecast_day).filter((d):d is number=>typeof d==='number'))).sort((a,b)=>a-b);
   const selectedDay=days[Math.min(dayIndex,days.length-1)];
   const signature=(url:string)=>url.replace(/(day|lead)[_-]?\d+/gi,'$1##');
-  const variables=useMemo(()=>['All variables',...Array.from(new Set(figures.map(f=>f.variable))).sort()], [figures]);
   const filtered=candidates.filter(f=>days.length===0||f.forecast_day===selectedDay);
   const selected=filtered.find(f=>signature(f.url)===active)??filtered[0];
   return <section className={`panel scientific-gallery ${(['class1','class1_timeseries','class1_maps','surface_maps','surface_timeseries','ocean_dynamics'] as FigureGroup[]).includes(group) ? 'dynamics-gallery' : ''}`}>
@@ -52,8 +56,8 @@ export default function ScientificFigures({group}:{group:FigureGroup}) {
     {error||figures.length===0?<p className="figure-empty">No plots or videos indexed for this category. From the repository root, run <code>python scripts/sync_figures.py imgs</code> (or provide the full path to your <code>imgs</code> directory), then refresh the page.</p>:<>
       <div className="figure-filters">
         <label>Region <select value={regions.includes(region)?region:'All regions'} onChange={e=>{setRegion(e.target.value);setActive(null);setDayIndex(0)}}>{regions.map(r=><option key={r}>{r}</option>)}</select></label>
-        <label>Variable <select value={variables.includes(variable)?variable:'All variables'} onChange={e=>{setVariable(e.target.value);setActive(null);setDayIndex(0)}}>{variables.map(v=><option key={v}>{v}</option>)}</select></label>
-        {isClass1&&<label>Product <select value={product} onChange={e=>{setProduct(e.target.value);setActive(null);setDayIndex(0)}}>{products.map(p=><option key={p}>{p}</option>)}</select></label>}
+        <label>Variable <select value={selectedVariable??''} onChange={e=>{setVariable(e.target.value);setProduct('');setActive(null);setDayIndex(0)}}>{variables.map(v=><option key={v}>{v}</option>)}</select></label>
+        {isClass1&&<label>Product <select value={selectedProduct??''} onChange={e=>{setProduct(e.target.value);setActive(null);setDayIndex(0)}}>{products.map(p=><option key={p}>{p}</option>)}</select></label>}
         <label>Media <select value={mediaType} onChange={e=>{setMediaType(e.target.value as typeof mediaType);setActive(null);setDayIndex(0)}}><option value="all">All media</option><option value="image">Plots</option><option value="video">Videos</option></select></label><span>{filtered.length} matching files</span>
       </div>
       <div className="figure-layout">
