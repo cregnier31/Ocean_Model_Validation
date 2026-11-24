@@ -42,3 +42,5 @@
 .scientific-gallery .figure-preview img{max-height:min(76vh,850px)}
 .scientific-gallery .figure-meta{margin-top:5px}
 @media(max-width:750px){.scientific-gallery .figure-layout{grid-template-columns:1fr}.scientific-gallery .figure-preview img{max-height:65vh}}
+
+.class3-directory{max-height:76vh;overflow:auto;display:flex;flex-direction:column;gap:5px;color:#d8e8f3}.class3-directory>div{padding:8px;background:#102d40;border:1px solid #31546a;border-radius:6px;font-size:11px;overflow-wrap:anywhere}.class3-directory small{display:block;color:#a9c2d2;margin-top:3px}.scientific-gallery .class3-layout{grid-template-columns:230px minmax(0,1fr)}@media(max-width:750px){.scientific-gallery .class3-layout{grid-template-columns:1fr}.class3-directory{max-height:180px}}
