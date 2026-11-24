@@ -75,19 +75,21 @@ def variable(name):
     return "Unspecified"
 
 # Extend this list when new reference products are introduced.
-CLASS1_PRODUCTS = ["OSTIA", "GLOBCURRENT", "GLORYS", "DUACS", "OISST"]
+CLASS1_PRODUCTS = ["OSTIA", "CMC", "GLOBCURRENT", "GLORYS", "DUACS", "OISST"]
 
 def class1_metadata(path):
     name = path.as_posix()
     metric = re.search(r"(?<![a-z0-9])(RMSD|MAE)(?![a-z0-9])", name, re.I)
     product = next((p for p in CLASS1_PRODUCTS if re.search(r"(?<![a-z0-9])" + re.escape(p) + r"(?![a-z0-9])", name, re.I)), None)
+    if product is None and re.search(r"(?<![a-z0-9])glocurrent(?![a-z0-9])", name, re.I):
+        product = "GLOBCURRENT"
     # Arbitrary product names can be supplied as products/<name>/ folders.
     for i, part in enumerate(path.parts[:-1]):
         if part.lower() in ("product", "products") and i + 1 < len(path.parts) - 1:
             product = path.parts[i + 1]
             break
     return {"statistic": metric.group(1).upper() if metric else "Unspecified",
-            "product": product or "Unspecified"}
+            "product": product.upper() if product else "Unspecified"}
 
 def forecast_day(path):
     """Find a forecast day in a filename or directory (day01, day03, lead05)."""
