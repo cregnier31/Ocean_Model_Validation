@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Activity, BarChart3, CircleDot, Database, Layers, Menu, Route, Waves } from 'lucide-react';
+import Class3Sections from './Class3Sections';
 import ScientificFigures, { type FigureGroup } from './ScientificFigures';
 import { classes, sections, type Section } from './data';
 
@@ -38,7 +39,7 @@ export default function App() {
   const count=(group:FigureGroup)=>catalog[group]?.length??0;
   const description:Record<Section,string>={
     Overview:'Indexed scientific plots and videos from your local collection',
-    'Class 1–4 Validation':'Browse available Class 1 and Class 4 verification plots',
+    'Class 1–4 Validation':'Browse available Class 1, Class 3 and Class 4 verification plots',
     'Lagrangian Analysis':'Trajectory diagnostics and separation statistics from supplied figures',
     'Eddy Tracking':'Eddy-tracking plots and illustrative videos, when available',
     'Ocean Dynamics Diagnostics':'Ocean-dynamics plots and illustrative videos, when available'
@@ -63,7 +64,7 @@ export default function App() {
             <div className="metric-card"><span className="muted label">Eddy tracking media</span><div className="metric-value">{count('eddy_tracking')}</div><span className="muted small">Indexed media files</span></div>
           </div>
           <section className="panel"><div className="panel-heading"><div><h2>Available results</h2><p>Counts describe supplied plots and videos, not calculated performance metrics</p></div></div>
-            <div className="figure-summary">{(['class1_timeseries','class1_maps','class1',...class4Groups,'sst_drifters','lagrangian','eddy_tracking','surface_maps','surface_timeseries','ocean_dynamics','overview'] as FigureGroup[]).map(g=><button key={g} onClick={()=>{setSection(g==='lagrangian'?'Lagrangian Analysis':g==='eddy_tracking'?'Eddy Tracking':(['ocean_dynamics','surface_maps','surface_timeseries'].includes(g))?'Ocean Dynamics Diagnostics':g==='overview'?'Overview':'Class 1–4 Validation');if(g==='surface_maps'||g==='surface_timeseries'||g==='ocean_dynamics')setDynamicsView(g);if(g==='class1'||g==='class1_timeseries'||g==='class1_maps'){setMetricClass('Class 1');setClass1View(g)}else if(class4Groups.includes(g as typeof class4Groups[number])){setMetricClass('Class 4');setClass4View(g as typeof class4Groups[number]);}}}><span>{groupNames[g]}</span><strong>{count(g)}</strong></button>)}</div>
+            <div className="figure-summary">{(['class1_timeseries','class1_maps','class1',...class4Groups,'lagrangian','eddy_tracking','surface_maps','surface_timeseries','ocean_dynamics','overview'] as FigureGroup[]).map(g=><button key={g} onClick={()=>{setSection(g==='lagrangian'?'Lagrangian Analysis':g==='eddy_tracking'?'Eddy Tracking':(['ocean_dynamics','surface_maps','surface_timeseries'].includes(g))?'Ocean Dynamics Diagnostics':g==='overview'?'Overview':'Class 1–4 Validation');if(g==='surface_maps'||g==='surface_timeseries'||g==='ocean_dynamics')setDynamicsView(g);if(g==='class1'||g==='class1_timeseries'||g==='class1_maps'){setMetricClass('Class 1');setClass1View(g)}else if(class4Groups.includes(g as typeof class4Groups[number])){setMetricClass('Class 4');setClass4View(g as typeof class4Groups[number]);}}}><span>{groupNames[g]}</span><strong>{count(g)}</strong></button>)}</div>
           </section>
           {count('overview')>0&&<ScientificFigures group="overview"/>}
           {total===0&&<p className="figure-empty">No indexed figures found. Run <code>python scripts/sync_figures.py imgs</code> from the repository root and refresh.</p>}
@@ -72,7 +73,7 @@ export default function App() {
           <div className="class-tabs">{classes.map(c=><button key={c} className={'class-tab '+(metricClass===c?'selected':'')} onClick={()=>setMetricClass(c)}>{c}</button>)}</div>
           {metricClass==='Class 1'&&<div className="class-tabs">{([['class1_timeseries','Time series'],['class1_maps','Maps'],['class1','Other figures']] as const).map(([g,label])=><button key={g} className={'class-tab '+(class1View===g?'selected':'')} onClick={()=>setClass1View(g)}>{label}</button>)}</div>}
           {metricClass==='Class 4'&&<div className="class-tabs">{class4Groups.map(g=><button key={g} className={'class-tab '+(class4View===g?'selected':'')} onClick={()=>setClass4View(g)}>{groupNames[g]}</button>)}</div>}
-          {metricClass==='Class 1'||metricClass==='Class 4'?<ScientificFigures key={metricClass==='Class 1'?class1View:class4View} group={metricClass==='Class 1'?class1View:class4View}/>:<section className="panel figure-empty">No {metricClass} validation figures have been provided.</section>}
+          {metricClass==='Class 3'?<Class3Sections/>:metricClass==='Class 1'||metricClass==='Class 4'?<ScientificFigures key={metricClass==='Class 1'?class1View:class4View} group={metricClass==='Class 1'?class1View:class4View}/>:<section className="panel figure-empty">No {metricClass} validation figures have been provided.</section>}
         </>}
         {section==='Lagrangian Analysis'&&<ScientificFigures group="lagrangian"/>}
         {section==='Eddy Tracking'&&<ScientificFigures group="eddy_tracking"/>}
