@@ -16,6 +16,7 @@ REGIONS = ["Antarctic_Circumpolar", "Arctic_Ocean", "Baltic_Sea", "Full_Domain",
            "South_Atlantic_Ocean", "South_Pacific_Ocean", "Tropical_Atlantic_Ocean",
            "Tropical_Pacific_Ocean"]
 FOLDERS = {
+    "CLASS3": "class3",
     "CLASS1": "class1",
     "CLASS1/timeseries": "class1_timeseries",
     "CLASS1/maps": "class1_maps",
@@ -159,7 +160,7 @@ def main():
             counts["video"] += 1
 
     for group in catalog:
-        catalog[group].sort(key=lambda x: (x["forecast_day"] is None, x["forecast_day"] if x["forecast_day"] is not None else 0, x["file"].lower()))
+        catalog[group].sort(key=lambda x: (x.get("forecast_day") is None, x.get("forecast_day") if x.get("forecast_day") is not None else 0, x["file"].lower()))
         print(f"{group}: {len(catalog[group])} media files")
     output = PUBLIC / "figures-manifest.json"
     output.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
