@@ -75,7 +75,7 @@ def variable(name):
     return "Unspecified"
 
 # Extend this list when new reference products are introduced.
-CLASS1_PRODUCTS = ["OSTIA", "CMC", "GLOBCURRENT", "GLORYS", "DUACS", "OISST"]
+CLASS1_PRODUCTS = ["OSTIA", "CMC", "OSCAR", "GLOBCURRENT", "GLORYS", "DUACS", "OISST"]
 
 def class1_metadata(path):
     name = path.as_posix()
