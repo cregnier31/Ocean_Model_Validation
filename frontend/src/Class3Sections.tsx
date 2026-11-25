@@ -261,7 +261,10 @@ const sections = [
     "no": 52
   }
 ];
-type Media={url:string;file:string;type?:string};
+type Media={url:string;file:string;type?:string;variable?:string;forecast_day?:number|null};
+const variableLabel=(f:Media)=>f.variable??'Unspecified';
+const leadKey=(f:Media)=>typeof f.forecast_day==='number'?String(f.forecast_day):'none';
+const leadLabel=(d:string)=>d==='none'?'Unspecified / no lead':`Day ${d.padStart(2,'0')}`;
 const normalize=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 const parts=(f:Media)=>f.url.split('/').filter(Boolean).map(p=>{try{return decodeURIComponent(p)}catch{return p}});
 const monthLabel=(m:string)=>new Date(Number(m.slice(0,4)),Number(m.slice(4))-1,1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
@@ -270,6 +273,8 @@ export default function Class3Sections(){
  const [region,setRegion]=useState('All regions');
  const [section,setSection]=useState('');
  const [month,setMonth]=useState('');
+ const [variable,setVariable]=useState('');
+ const [lead,setLead]=useState('');
  const [media,setMedia]=useState<Media[]>([]);
  const [status,setStatus]=useState('loading');
  const [missing,setMissing]=useState(false);
@@ -281,7 +286,12 @@ export default function Class3Sections(){
  const months=Array.from(new Set(sectionMedia.map(f=>f.month))).sort();
  const selectedMonth=months.includes(month)?month:months[0];
  const index=months.indexOf(selectedMonth);
- const figures=sectionMedia.filter(f=>f.month===selectedMonth).sort((a,b)=>a.file.localeCompare(b.file));
+ const variables=Array.from(new Set(sectionMedia.map(variableLabel))).sort();
+ const selectedVariable=variables.includes(variable)?variable:variables[0];
+ const variableMedia=sectionMedia.filter(f=>variableLabel(f)===selectedVariable);
+ const leads=Array.from(new Set(variableMedia.map(leadKey))).sort((a,b)=>a==='none'?1:b==='none'?-1:Number(a)-Number(b));
+ const selectedLead=leads.includes(lead)?lead:leads[0];
+ const figures=variableMedia.filter(f=>f.month===selectedMonth&&leadKey(f)===selectedLead).sort((a,b)=>a.file.localeCompare(b.file));
  const mapUrl=import.meta.env.BASE_URL+'imgs/CLASS3/all_sections_map.png';
  return <section className="panel scientific-gallery">
  <div className="panel-heading"><div><h2>Class 3 · Ocean sections</h2><p>52 sections across 7 regions</p></div></div>
@@ -289,7 +299,8 @@ export default function Class3Sections(){
  <div className="figure-layout class3-layout"><div className="class3-directory figure-controls"><button className={!section?'selected':''} onClick={()=>setSection('')}>All sections · Overview map</button>{visible.map(s=><button key={s.no} className={section===s.name?'selected':''} onClick={()=>{setSection(s.name);setMonth('')}}><strong>{s.no}. {s.name}</strong><small>{s.region} · {new Set(monthly.filter(f=>normalize(f.section)===normalize(s.name)).map(f=>f.month)).size} months</small></button>)}</div>
  <div className="figure-preview">{!section?<>{missing?<p>Map not found. Run python scripts/sync_figures.py imgs and refresh.</p>:<a href={mapUrl} target="_blank" rel="noreferrer"><img src={mapUrl} alt="Overview map of all 52 ocean sections" onError={()=>setMissing(true)}/></a>}<div className="figure-meta">Select a section to browse monthly figures.</div></>:<>
  <div className="class3-heading"><strong>{section}</strong><span>{selectedMonth?monthLabel(selectedMonth):''}</span></div>
- {months.length>0?<><div className="class3-months" aria-label="Available months"><button aria-label="Previous month" disabled={index<=0} onClick={()=>setMonth(months[index-1])}>‹</button>{months.map(m=><button key={m} aria-pressed={m===selectedMonth} className={m===selectedMonth?'selected':''} onClick={()=>setMonth(m)}>{monthLabel(m)}</button>)}<button aria-label="Next month" disabled={index>=months.length-1} onClick={()=>setMonth(months[index+1])}>›</button></div>
+ {months.length>0?<><div className="class3-filters"><label>Variable <select value={selectedVariable??''} onChange={e=>{setVariable(e.target.value);setLead('')}}>{variables.map(v=><option key={v}>{v}</option>)}</select></label><label>Forecast lead time <select value={selectedLead??''} onChange={e=>setLead(e.target.value)}>{leads.map(d=><option key={d} value={d}>{leadLabel(d)}</option>)}</select></label></div><div className="class3-months" aria-label="Available months"><button aria-label="Previous month" disabled={index<=0} onClick={()=>setMonth(months[index-1])}>‹</button>{months.map(m=><button key={m} aria-pressed={m===selectedMonth} className={m===selectedMonth?'selected':''} onClick={()=>setMonth(m)}>{monthLabel(m)}</button>)}<button aria-label="Next month" disabled={index>=months.length-1} onClick={()=>setMonth(months[index+1])}>›</button></div>
+ {figures.length===0&&<p>No figures for this month, variable and lead time.</p>}
  {figures.map(f=>f.type==='video'?<video key={f.url} className="figure-video" src={asset(f.url)} controls preload="metadata"/>:<a key={f.url} href={asset(f.url)} target="_blank" rel="noreferrer"><img src={asset(f.url)} alt={f.file}/></a>)}</>:<p>{status==='loading'?'Loading monthly figures…':status==='error'?'Unable to load the figure manifest. Run python scripts/sync_figures.py imgs.':'No monthly figures indexed for this section.'}</p>}</>}</div></div>
  </section>;
 }
