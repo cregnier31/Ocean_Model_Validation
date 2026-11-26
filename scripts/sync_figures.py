@@ -125,13 +125,23 @@ def main():
         kind = "video" if src.suffix.lower() in EXT_VIDEO else "image"
         region = next((r.replace("_", " ") for r in REGIONS if r.lower() in src.stem.lower()), "All regions")
         day = forecast_day(src.relative_to(source))
+        detected_variable = variable(src.name) if kind == "image" else "Video"
+        if group == "class3":
+            match = re.search(r"(?<![a-z0-9])fcst[_-]?(\d+)(?![a-z0-9])", src.stem, re.I)
+            if match:
+                day = int(match.group(1))
+            if kind == "image":
+                for token, label in [("temperature", "Temperature (thetao)"), ("salinity", "Salinity (so)")]:
+                    if re.search(r"(?<![a-z0-9])" + token + r"(?![a-z0-9])", src.stem, re.I):
+                        detected_variable = label
+                        break
         lead = f"Day {day:02d}" if day is not None else "All leads"
         catalog.setdefault(group, []).append({
             "type": kind, "url": "/" + relative.as_posix(), "file": src.name,
             "label": src.stem.replace("_", " "), "region": region, "lead": lead,
             "forecast_day": day,
             **(class1_metadata(src.relative_to(source)) if group.startswith("class1") else {}),
-            "variable": variable(src.name) if kind == "image" else "Video"
+            "variable": detected_variable
         })
         counts[kind] += 1
 
